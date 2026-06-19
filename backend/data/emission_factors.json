@@ -1,0 +1,81 @@
+{
+  "_meta": {
+    "description": "Emission factors in kg CO2e per unit. Curated from UK DEFRA/BEIS GHG Conversion Factors and EPA/Our World in Data (Poore & Nemecek 2018) figures. Values are representative national/global averages used for personal footprint estimation, not facility-specific or audit-grade measurements.",
+    "sources": [
+      "DEFRA/BEIS Greenhouse Gas Conversion Factors 2023",
+      "EPA Greenhouse Gas Equivalencies Calculator",
+      "Poore & Nemecek, Science 2018 (food lifecycle emissions)"
+    ]
+  },
+  "transport": {
+    "car_petrol_small": { "label": "Car - petrol (small)", "unit": "km", "factor": 0.144 },
+    "car_petrol_medium": { "label": "Car - petrol (medium)", "unit": "km", "factor": 0.192 },
+    "car_petrol_large": { "label": "Car - petrol (large/SUV)", "unit": "km", "factor": 0.282 },
+    "car_diesel_medium": { "label": "Car - diesel (medium)", "unit": "km", "factor": 0.171 },
+    "car_hybrid": { "label": "Car - hybrid", "unit": "km", "factor": 0.111 },
+    "car_electric": { "label": "Car - electric (grid average)", "unit": "km", "factor": 0.053 },
+    "motorbike": { "label": "Motorbike", "unit": "km", "factor": 0.103 },
+    "bus": { "label": "Bus", "unit": "km", "factor": 0.105 },
+    "train": { "label": "Train (national rail)", "unit": "km", "factor": 0.041 },
+    "subway": { "label": "Subway / metro / tram", "unit": "km", "factor": 0.035 },
+    "taxi_rideshare": { "label": "Taxi / rideshare", "unit": "km", "factor": 0.203 },
+    "bicycle": { "label": "Bicycle", "unit": "km", "factor": 0.0 },
+    "walking": { "label": "Walking", "unit": "km", "factor": 0.0 },
+    "flight_domestic": { "label": "Flight - domestic", "unit": "km", "factor": 0.246 },
+    "flight_short_haul": { "label": "Flight - short-haul (<1500km)", "unit": "km", "factor": 0.151 },
+    "flight_long_haul": { "label": "Flight - long-haul (>1500km)", "unit": "km", "factor": 0.148 }
+  },
+  "food": {
+    "beef": { "label": "Beef", "unit": "meal", "factor": 7.2 },
+    "lamb": { "label": "Lamb / mutton", "unit": "meal", "factor": 4.8 },
+    "pork": { "label": "Pork", "unit": "meal", "factor": 1.8 },
+    "chicken": { "label": "Chicken / poultry", "unit": "meal", "factor": 1.1 },
+    "fish": { "label": "Fish (farmed/wild mix)", "unit": "meal", "factor": 1.3 },
+    "eggs": { "label": "Eggs", "unit": "meal", "factor": 0.6 },
+    "dairy_meal": { "label": "Cheese / dairy-heavy meal", "unit": "meal", "factor": 2.1 },
+    "vegetarian": { "label": "Vegetarian meal", "unit": "meal", "factor": 0.7 },
+    "vegan": { "label": "Vegan / plant-based meal", "unit": "meal", "factor": 0.4 },
+    "rice_grain": { "label": "Rice / grain-based meal", "unit": "meal", "factor": 0.9 },
+    "milk": { "label": "Milk", "unit": "liter", "factor": 1.4 },
+    "coffee": { "label": "Coffee (cup)", "unit": "cup", "factor": 0.05 },
+    "food_delivery": { "label": "Food delivery (extra packaging + transport)", "unit": "order", "factor": 1.0 },
+    "food_waste": { "label": "Food thrown away", "unit": "kg", "factor": 2.5 }
+  },
+  "energy": {
+    "electricity_kwh": { "label": "Electricity", "unit": "kWh", "factor": 0.233 },
+    "natural_gas_kwh": { "label": "Natural gas (heating/cooking)", "unit": "kWh", "factor": 0.184 },
+    "heating_oil_liter": { "label": "Heating oil", "unit": "liter", "factor": 2.52 },
+    "lpg_kg": { "label": "LPG / propane", "unit": "kg", "factor": 1.51 },
+    "ac_hour": { "label": "Air conditioning", "unit": "hour", "factor": 0.6 },
+    "heating_hour": { "label": "Space heater", "unit": "hour", "factor": 0.9 },
+    "hot_water_shower": { "label": "Hot shower", "unit": "shower", "factor": 0.5 },
+    "laundry_load": { "label": "Laundry (wash + dry)", "unit": "load", "factor": 1.7 },
+    "dishwasher_load": { "label": "Dishwasher", "unit": "load", "factor": 0.8 }
+  },
+  "shopping": {
+    "clothing_item": { "label": "Clothing item (new)", "unit": "item", "factor": 10.0 },
+    "shoes": { "label": "Shoes (new pair)", "unit": "pair", "factor": 14.0 },
+    "smartphone": { "label": "Smartphone (new)", "unit": "item", "factor": 70.0 },
+    "laptop": { "label": "Laptop (new)", "unit": "item", "factor": 200.0 },
+    "furniture_item": { "label": "Furniture item", "unit": "item", "factor": 50.0 },
+    "online_parcel": { "label": "Online shopping parcel (delivery)", "unit": "parcel", "factor": 0.5 },
+    "books_paper": { "label": "Books / paper goods", "unit": "item", "factor": 1.3 }
+  },
+  "waste": {
+    "general_waste": { "label": "General waste (landfill)", "unit": "kg", "factor": 0.5 },
+    "recycling": { "label": "Recycling", "unit": "kg", "factor": 0.02 },
+    "composting": { "label": "Composting", "unit": "kg", "factor": 0.01 }
+  },
+  "benchmarks": {
+    "global_average_annual_kg": 4700,
+    "country_averages_annual_kg": {
+      "global": 4700,
+      "india": 1900,
+      "usa": 14700,
+      "uk": 5500,
+      "eu": 6800,
+      "china": 7600
+    },
+    "paris_target_2030_annual_kg": 2500
+  }
+}

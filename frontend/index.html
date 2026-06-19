@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CarbonCoach</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-icon">🌱</span>
+      <div>
+        <h1>CarbonCoach</h1>
+        <p class="tagline">Understand. Track. Reduce.</p>
+      </div>
+    </div>
+    <div class="goal-pill" id="goal-pill">Goal: -- kg CO2e / yr</div>
+  </header>
+
+  <main class="layout">
+    <section class="chat-panel">
+      <div class="panel-header">
+        <h2>Chat with your coach</h2>
+        <p>Tell it about your day — e.g. "drove 15km to work and had a beef burger for lunch"</p>
+      </div>
+
+      <div id="chat-log" class="chat-log">
+        <div class="msg msg-bot">
+          <p>Hi! I'm CarbonCoach. Tell me about your day — what you ate, how you got around, energy use —
+            and I'll calculate your footprint, log it, and help you find ways to cut it down.</p>
+        </div>
+      </div>
+
+      <form id="chat-form" class="chat-input-row">
+        <input id="chat-input" type="text" placeholder="e.g. took the bus to work and had a vegan lunch" autocomplete="off" />
+        <label class="photo-btn" title="Log from a photo">
+          📷
+          <input id="photo-input" type="file" accept="image/*" hidden />
+        </label>
+        <button type="submit">Send</button>
+      </form>
+    </section>
+
+    <section class="dashboard-panel">
+      <div class="panel-header">
+        <h2>Your footprint</h2>
+        <p id="comparison-text">—</p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <span class="card-label">Today</span>
+          <span class="card-value" id="today-kg">0</span>
+          <span class="card-unit">kg CO2e</span>
+        </div>
+        <div class="card">
+          <span class="card-label">This week</span>
+          <span class="card-value" id="week-kg">0</span>
+          <span class="card-unit">kg CO2e</span>
+        </div>
+        <div class="card">
+          <span class="card-label">This month</span>
+          <span class="card-value" id="month-kg">0</span>
+          <span class="card-unit">kg CO2e</span>
+        </div>
+      </div>
+
+      <div class="charts">
+        <div class="chart-box">
+          <h3>Last 14 days</h3>
+          <canvas id="trend-chart"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3>This month by category</h3>
+          <canvas id="category-chart"></canvas>
+        </div>
+      </div>
+
+      <div class="insight-box" id="insight-box">
+        <h3>Weekly insight</h3>
+        <p id="insight-text">Loading…</p>
+      </div>
+
+      <details class="onboard-box">
+        <summary>Profile / goal</summary>
+        <form id="onboard-form" class="onboard-form">
+          <label>Country
+            <select id="country-select">
+              <option value="global">Global average</option>
+              <option value="usa">USA</option>
+              <option value="uk">UK</option>
+              <option value="eu">EU</option>
+              <option value="china">China</option>
+              <option value="india">India</option>
+            </select>
+          </label>
+          <label>Annual goal (kg CO2e)
+            <input id="goal-input" type="number" min="0" step="50" value="2500" />
+          </label>
+          <button type="submit">Save</button>
+        </form>
+      </details>
+    </section>
+  </main>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
