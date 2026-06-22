@@ -208,6 +208,9 @@ class AgentService:
                 else:
                     reply = f"Gemini API error ({e.code}): {e.message}"
                 return {"reply": reply, "actions": actions}
+            except Exception as e:
+                logger.exception("Unexpected error in agent loop")
+                return {"reply": f"Something went wrong: {e}", "actions": actions}
 
             candidate = response.candidates[0]
             parts = candidate.content.parts

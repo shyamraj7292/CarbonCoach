@@ -1,6 +1,7 @@
 const chatLog = document.getElementById("chat-log");
 const chatForm = document.getElementById("chat-form");
 const chatInput = document.getElementById("chat-input");
+const chatBtn = chatForm.querySelector("button[type=submit]");
 const photoInput = document.getElementById("photo-input");
 const onboardForm = document.getElementById("onboard-form");
 const countrySelect = document.getElementById("country-select");
@@ -18,6 +19,7 @@ const CATEGORY_COLORS = {
 };
 
 function addMessage(text, role, actions) {
+  removeTypingIndicator();
   const div = document.createElement("div");
   div.className = `msg msg-${role}`;
   const p = document.createElement("p");
@@ -42,25 +44,73 @@ function addMessage(text, role, actions) {
   chatLog.scrollTop = chatLog.scrollHeight;
 }
 
+function showTypingIndicator() {
+  removeTypingIndicator();
+  const div = document.createElement("div");
+  div.className = "typing-indicator";
+  div.id = "typing";
+  div.innerHTML = "<span></span><span></span><span></span>";
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const el = document.getElementById("typing");
+  if (el) el.remove();
+}
+
+function setInputEnabled(enabled) {
+  chatInput.disabled = !enabled;
+  chatBtn.disabled = !enabled;
+}
+
 async function sendMessage(message) {
   addMessage(message, "user");
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message }),
-  });
-  const data = await res.json();
-  addMessage(data.reply, "bot", data.actions);
+  showTypingIndicator();
+  setInputEnabled(false);
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      addMessage(data.detail || "Something went wrong. Please try again.", "error");
+    } else {
+      addMessage(data.reply, "bot", data.actions);
+    }
+  } catch (err) {
+    addMessage("Network error — is the server running?", "error");
+  }
+
+  setInputEnabled(true);
+  chatInput.focus();
   await refreshDashboard();
 }
 
 async function sendPhoto(file) {
-  addMessage(`📷 ${file.name}`, "user");
-  const form = new FormData();
-  form.append("file", file);
-  const res = await fetch("/api/photo", { method: "POST", body: form });
-  const data = await res.json();
-  addMessage(data.reply, "bot", data.actions);
+  addMessage(`Uploading photo: ${file.name}`, "user");
+  showTypingIndicator();
+  setInputEnabled(false);
+
+  try {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch("/api/photo", { method: "POST", body: form });
+    const data = await res.json();
+    if (!res.ok) {
+      addMessage(data.detail || "Photo analysis failed.", "error");
+    } else {
+      addMessage(data.reply, "bot", data.actions);
+    }
+  } catch (err) {
+    addMessage("Network error — could not upload photo.", "error");
+  }
+
+  setInputEnabled(true);
+  chatInput.focus();
   await refreshDashboard();
 }
 
@@ -92,35 +142,44 @@ onboardForm.addEventListener("submit", async (e) => {
 });
 
 async function refreshDashboard() {
-  const [summaryRes, historyRes, insightsRes, profileRes] = await Promise.all([
-    fetch("/api/dashboard/summary"),
-    fetch("/api/dashboard/history?days=14"),
-    fetch("/api/insights"),
-    fetch("/api/onboard"),
-  ]);
-  const summary = await summaryRes.json();
-  const history = await historyRes.json();
-  const insights = await insightsRes.json();
-  const profile = await profileRes.json();
+  try {
+    const [summaryRes, historyRes, insightsRes, profileRes] = await Promise.all([
+      fetch("/api/dashboard/summary"),
+      fetch("/api/dashboard/history?days=14"),
+      fetch("/api/insights"),
+      fetch("/api/onboard"),
+    ]);
+    const summary = await summaryRes.json();
+    const history = await historyRes.json();
+    const insights = await insightsRes.json();
+    const profile = await profileRes.json();
 
-  document.getElementById("today-kg").textContent = summary.today_kg;
-  document.getElementById("week-kg").textContent = summary.week_kg;
-  document.getElementById("month-kg").textContent = summary.month_kg;
+    document.getElementById("today-kg").textContent = summary.today_kg;
+    document.getElementById("week-kg").textContent = summary.week_kg;
+    document.getElementById("month-kg").textContent = summary.month_kg;
 
-  const cmp = summary.comparison;
-  const pct = cmp.vs_country_average_pct;
-  const direction = pct <= 0 ? "below" : "above";
-  document.getElementById("comparison-text").textContent =
-    `Annualized at ${cmp.annual_kg} kg CO2e/yr — ${Math.abs(pct)}% ${direction} the ${cmp.country} average (${cmp.country_average_annual_kg} kg/yr).`;
+    const cmp = summary.comparison;
+    if (cmp.annual_kg === 0) {
+      document.getElementById("comparison-text").textContent =
+        "Log your first activity to see how you compare.";
+    } else {
+      const pct = cmp.vs_country_average_pct;
+      const direction = pct <= 0 ? "below" : "above";
+      document.getElementById("comparison-text").textContent =
+        `Annualized at ${cmp.annual_kg} kg CO2e/yr — ${Math.abs(pct)}% ${direction} the ${cmp.country} average (${cmp.country_average_annual_kg} kg/yr).`;
+    }
 
-  document.getElementById("insight-text").textContent = insights.summary;
+    document.getElementById("insight-text").textContent = insights.summary;
 
-  countrySelect.value = profile.country;
-  goalInput.value = profile.goal_annual_kg;
-  goalPill.textContent = `Goal: ${profile.goal_annual_kg} kg CO2e / yr`;
+    countrySelect.value = profile.country;
+    goalInput.value = profile.goal_annual_kg;
+    goalPill.textContent = `Goal: ${profile.goal_annual_kg} kg CO2e / yr`;
 
-  renderTrendChart(history.series);
-  renderCategoryChart(summary.by_category_month);
+    renderTrendChart(history.series);
+    renderCategoryChart(summary.by_category_month);
+  } catch (err) {
+    console.error("Dashboard refresh failed:", err);
+  }
 }
 
 function renderTrendChart(series) {
@@ -173,6 +232,8 @@ function renderCategoryChart(byCategory) {
     categoryChart.update();
     return;
   }
+
+  if (labels.length === 0) return;
 
   categoryChart = new Chart(ctx, {
     type: "doughnut",

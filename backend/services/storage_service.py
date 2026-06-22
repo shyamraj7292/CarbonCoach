@@ -1,16 +1,19 @@
 """
 Storage layer for users and logged activities.
 
-Uses Firestore if GOOGLE_CLOUD_PROJECT / credentials are configured,
-otherwise falls back to a local JSON file (backend/data/store.json) so the
-app runs standalone without any GCP setup. Either way, data is only ever
-written by real user activity — there is no seeded or simulated data.
+Uses Firestore when GOOGLE_CLOUD_PROJECT is set and the Firestore client
+connects, otherwise falls back to a local JSON file (backend/data/store.json)
+so the app runs standalone without any GCP setup. Either way, data is only
+ever written by real user activity — there is no seeded or simulated data.
 """
 
 import json
+import logging
 import os
 import uuid
 from datetime import datetime, timezone
+
+logger = logging.getLogger("carboncoach.storage")
 
 _STORE_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "store.json")
 
@@ -30,7 +33,7 @@ def _now_iso() -> str:
 
 
 class LocalJsonStorage:
-    """Simple JSON-file backed storage for a single-user deployment."""
+    """JSON-file backed storage for local / single-user deployment."""
 
     def __init__(self, path: str):
         self.path = path
@@ -45,8 +48,6 @@ class LocalJsonStorage:
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         with open(self.path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
-
-    # --- users ---
 
     def get_user(self, user_id: str) -> dict:
         data = self._read()
@@ -64,8 +65,6 @@ class LocalJsonStorage:
         data["users"][user_id] = user
         self._write(data)
         return user
-
-    # --- activities ---
 
     def add_activity(self, user_id: str, activity: dict) -> dict:
         data = self._read()
@@ -87,4 +86,60 @@ class LocalJsonStorage:
         return sorted(items, key=lambda a: a["timestamp"])
 
 
-storage = LocalJsonStorage(_STORE_PATH)
+class FirestoreStorage:
+    """Firestore-backed storage for production / Cloud Run deployment."""
+
+    def __init__(self):
+        from google.cloud import firestore
+        self.db = firestore.Client()
+
+    def get_user(self, user_id: str) -> dict:
+        doc = self.db.collection("users").document(user_id).get()
+        if doc.exists:
+            return doc.to_dict()
+        user = {**_DEFAULT_USER, "user_id": user_id, "created_at": _now_iso()}
+        self.db.collection("users").document(user_id).set(user)
+        return user
+
+    def update_user(self, user_id: str, fields: dict) -> dict:
+        ref = self.db.collection("users").document(user_id)
+        doc = ref.get()
+        if doc.exists:
+            ref.update(fields)
+            return {**doc.to_dict(), **fields}
+        user = {**_DEFAULT_USER, "user_id": user_id, "created_at": _now_iso(), **fields}
+        ref.set(user)
+        return user
+
+    def add_activity(self, user_id: str, activity: dict) -> dict:
+        record = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "timestamp": activity.get("timestamp") or _now_iso(),
+            **activity,
+        }
+        self.db.collection("activities").document(record["id"]).set(record)
+        return record
+
+    def get_activities(self, user_id: str, since: str | None = None) -> list[dict]:
+        query = self.db.collection("activities").where("user_id", "==", user_id)
+        if since:
+            query = query.where("timestamp", ">=", since)
+        query = query.order_by("timestamp")
+        return [doc.to_dict() for doc in query.stream()]
+
+
+def _create_storage():
+    if os.getenv("GOOGLE_CLOUD_PROJECT"):
+        try:
+            store = FirestoreStorage()
+            store.db.collection("users").limit(1).get()
+            logger.info("Using Firestore storage.")
+            return store
+        except Exception as e:
+            logger.warning(f"Firestore unavailable ({e}), falling back to local JSON.")
+    logger.info("Using local JSON storage.")
+    return LocalJsonStorage(_STORE_PATH)
+
+
+storage = _create_storage()

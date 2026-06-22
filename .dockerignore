@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+.env
+backend/data/store.json
+backend/venv
+backend/.venv
+.git
+.github
+.claude
+*.md
+scripts
